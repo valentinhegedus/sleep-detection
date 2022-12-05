@@ -73,6 +73,7 @@ class BodyPartDetector:
                 diff = self.__get_landmarks_diff(landmarks, self._prev_landmarks)
 
                 cv2.putText(frame, "Difference: " + str(diff), (20, int(frame.shape[0] / 2)), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
+                cv2.putText(frame, "Threshold: " + str(self._config["difference_threshold"]), (20, int(frame.shape[0] / 2) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
 
                 if diff > self._config["difference_threshold"]:
                     if self._movement_start_time is None:

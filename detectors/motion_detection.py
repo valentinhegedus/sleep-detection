@@ -50,10 +50,11 @@ class MotionDetector:
         threshold_frame = cv2.threshold(difference, 25, 255, cv2.THRESH_BINARY)[1]
         self._prev_frame = gray
 
-        cv2.putText(threshold_frame, "Difference: " + str(threshold_frame.sum() / 100), (20, int(frame.shape[0] / 2)), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
+        cv2.putText(threshold_frame, "Difference: " + str(int(threshold_frame.sum() / 100)), (20, int(frame.shape[0] / 2)), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
+        cv2.putText(threshold_frame, "Threshold: " + str(self._config["difference_threshold"]), (20, int(frame.shape[0] / 2) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
 
 
-        if threshold_frame.sum() / 100 > self._config["difference_threshold"]:
+        if int(threshold_frame.sum() / 100) > self._config["difference_threshold"]:
             if self._movement_start_time is None:
                 self._movement_start_time = datetime.datetime.now()
 

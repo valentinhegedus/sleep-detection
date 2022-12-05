@@ -17,16 +17,12 @@ logger = Logger(True)
 
 detector_results = []
 
-
 def main(video=None):
     cap = None
     if video is None:
         cap = cv2.VideoCapture(0)
     else:
         cap = cv2.VideoCapture(f"{os.getcwd()}/assets/videos/{video}")
-
-    prev_frame_time = 0
-    new_frame_time = 0
 
     detectors = [
         BodyPartDetector(verbose=False, config={
@@ -69,14 +65,6 @@ def main(video=None):
 
 
         res_image = detection(frame, detectors)
-
-        new_frame_time = time.time()
-        fps = 1 / (new_frame_time-prev_frame_time)
-        prev_frame_time = new_frame_time
-        fps = int(fps)
-        cv2.putText(frame, "FPS: " + str(fps), (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
-
-        #cv2.imshow("Video", frame)
 
         scale_percent = 75 
         width = int(res_image.shape[1] * scale_percent / 100)
@@ -153,7 +141,7 @@ def show_detectors(results):
     cv2.rectangle(concat, (0, concat.shape[0] - 50), (concat.shape[1], concat.shape[0]), (0, 0, 0), -1)
 
     votes = get_result(detector_results)
-    print(votes)
+    #print(votes)
 
     awake = None
     if votes["awake"] > votes["not_awake"]:

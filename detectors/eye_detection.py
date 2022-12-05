@@ -85,6 +85,9 @@ class EyeDetector:
                 right_distance = self.distance(ret, reb)
 
                 value = left_distance + right_distance
+
+                cv2.putText(image, "Difference: " + str(value), (20, int(frame.shape[0] / 2)), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
+                cv2.putText(image, "Threshold: " + str(self._config["threshold"]), (20, int(frame.shape[0] / 2) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.325, (255, 255, 255), 1, 2)
                 
                 if value < self._config["threshold"]:
                     if self._sleep_start_time is None:
