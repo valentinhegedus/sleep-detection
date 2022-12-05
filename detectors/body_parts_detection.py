@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import datetime
 from utils.logger import Logger
-
+import math
 
 mp_pose = mp.solutions.pose
 mp_draw = mp.solutions.drawing_utils
@@ -20,12 +20,17 @@ class BodyPartDetector:
         self._movement_start_time = None
         self._prev_landmarks = []
         self._logger = Logger(verbose)
+
+
+    def get_name(self):
+        return self.__class__.__name__
         
 
     def __get_landmarks_diff(self, l_curr, l_prev):
         diff = 0
         for i in range(0, len(l_prev)):
-            diff += abs((l_prev[i].x - l_curr[i].x) - (l_prev[i].y - l_curr[i].y) - (l_prev[i].z - l_curr[i].z)) 
+            diff += math.sqrt((l_prev[i].x - l_curr[i].x)**2 + (l_prev[i].y - l_curr[i].y)**2 )
+            #diff += abs((l_prev[i].x - l_curr[i].x) - (l_prev[i].y - l_curr[i].y) - (l_prev[i].z - l_curr[i].z)) 
         return diff
 
 
@@ -36,25 +41,26 @@ class BodyPartDetector:
             self._prev_frame = cv2.GaussianBlur(self.prev_frame, (21, 21), 0)
             return { 
                 "message": "NO_PREV_FRAME",
-                "status": 0
+                "status": 0,
+                "image": frame,
+                "name": self.__class__.__name__
             }
         
         if self._fireup_count < self._config["max_fireup"]:
             self._fireup_count += 1
-            self._logger.log(self.__class__.__name__, "Waiting for camera...")
             return { 
                 "message": "FIREUP",
-                "status": 0
+                "status": 0,
+                "image": frame,
+                "name": self.__class__.__name__
             }
 
-        self._logger.log(self.__class__.__name__, f"Detection from {self.__class__.__name__}")
         img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         prev_frame = img_rgb
         results = pose.process(img_rgb)
 
         if results.pose_landmarks:
-            if self._verbose:
-                mp_draw.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+            mp_draw.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS) 
 
             landmarks = []
             for idx, lm in enumerate(results.pose_landmarks.landmark):
@@ -75,11 +81,12 @@ class BodyPartDetector:
                 if self._movements > self._config["max_movement"]:
                     self._movement_start_time = None
                     self._movements = 0
-                    self._logger.log(self.__class__.__name__, "Reset")
-                    self._logger.log(self.__class__.__name__, "Movement detected!")
+
                     return { 
                         "message": "AWAKE",
-                        "status": 1
+                        "status": 1,
+                        "image": frame,
+                        "name": self.__class__.__name__
                     }
 
                 if self._movement_start_time is not None:
@@ -89,12 +96,13 @@ class BodyPartDetector:
                     if delta > self._config["movement_time_range"]:
                         self._movement_start_time = None
                         self._movements = 0
-                        self._logger.log(self.__class__.__name__, "Reset")
             
             self._prev_landmarks = landmarks
 
         return { 
             "message": "NOT_AWAKE",
-            "status": 1
+            "status": 1,
+            "image": frame,
+            "name": self.__class__.__name__
         }
         

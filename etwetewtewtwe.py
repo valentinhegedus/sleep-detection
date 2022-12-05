@@ -95,31 +95,41 @@ def main(video=None):
     cv2.destroyAllWindows()
 
 
-def get_result(votes):
+def get_majority_vote(votes):
+    awake = 0
+    not_awake = 0
+    unknown = 0
+
+    for vote in votes:
+        if vote["status"] == 1:
+            if vote["message"] == "AWAKE":
+                awake += 1
+            else:
+                not_awake += 1
+        else:
+            unknown += 1
+
+    return {
+        "awake": awake,
+        "not_awake": not_awake,
+        "unknown": unknown
+    }
+
+
+def get_majority_vote_dec_result(votes):
     awake = 0
     not_awake = 0
 
-    if votes[2]["status"] == 1:
-        awake += 100
-    else:
-        if votes[3]["status"] == 1:
-            awake += 100
+    for vote in votes:
+        if vote["status"] == 1:
+            awake += 1
         else:
-            if votes[0]["status"] == 1:
-                awake += 1
-            else:
-                not_awake += 1
+            not_awake += 1
 
-            if votes[1]["status"] == 1:
-                awake += 1
-            else:
-                not_awake += 1
-                
     return {
         "awake": awake,
         "not_awake": not_awake,
     }
-
 
 def detection(frame, detectors):
     results = []
@@ -132,6 +142,10 @@ def detection(frame, detectors):
             detector_results[i]["name"] = detectors[i].get_name()
 
         results.append(res)
+
+    votes = get_majority_vote_dec_result(detector_results)
+    #logger.log("Main", votes)
+    #logger.log("Main", max(votes, key=votes.get))
 
     return show_detectors(results)
         
@@ -152,19 +166,11 @@ def show_detectors(results):
 
     cv2.rectangle(concat, (0, concat.shape[0] - 50), (concat.shape[1], concat.shape[0]), (0, 0, 0), -1)
 
-    votes = get_result(detector_results)
+    votes = get_majority_vote_dec_result(detector_results)
     print(votes)
 
-    awake = None
-    if votes["awake"] > votes["not_awake"]:
-        awake = True
-    elif votes["awake"] < votes["not_awake"]:
-        awake = False
-    else:
-        awake = False
-
-    awake_text = "Yes" if awake else "No"
-    color = (0, 255, 0) if awake else (255, 255, 255)
+    awake_text = "Yes" if max(votes, key=votes.get) == "awake" else "No"
+    color = (0, 255, 0) if awake_text == "Yes" else (255, 255, 255)
     cv2.putText(concat, "Awake: " + awake_text, (int(concat.shape[1] / 2), concat.shape[0] - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.325, color, 1, 2)
 
     return concat
