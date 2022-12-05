@@ -36,7 +36,7 @@ def main(video=None):
             "max_fireup": 20
         }),
         MotionDetector(verbose=False, config={
-            "difference_threshold": 100000,
+            "difference_threshold": 10000,
             "max_movement": 20,
             "movement_time_range": 5 * 1000,
             "max_fireup": 20
